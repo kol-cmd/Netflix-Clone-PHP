@@ -3,7 +3,7 @@
 A fully functional, responsive Netflix Clone built from scratch using pure **PHP**, **MySQL**, and **JavaScript**. Features a dynamic video player, profile switching, "My List" functionality, and a responsive design that works on mobile and desktop.
 
 ![Project Preview](assets/images/background.jpg) 
-*(Note: You can update this image link later with a real screenshot)*
+
 
 ## 🚀 Features
 
