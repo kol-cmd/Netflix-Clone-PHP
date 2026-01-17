@@ -1,0 +1,2093 @@
+@import url("https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;700&display=swap");
+
+/* --- VIEWPORT TOGGLES --- */
+/* By default (Desktop), hide mobile elements */
+.mobile-only {
+  display: none !important;
+}
+
+/* On Mobile, hide desktop elements and show mobile ones */
+@media screen and (max-width: 768px) {
+  .desktop-only {
+    display: none !important;
+  }
+  .mobile-only {
+    display: flex !important;
+  }
+}
+
+/* =========================================
+   1. GLOBAL RESET & TYPOGRAPHY
+   ========================================= */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body,
+html {
+  background-color: #141414;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; /* Netflix Fonts */
+  color: white;
+  width: 100%;
+  overflow-x: hidden; /* CRITICAL: Hides the side scrollbar */
+  margin: 0;
+  padding: 0;
+  position: relative;
+}
+a {
+  text-decoration: none;
+  color: #b3b3b3;
+}
+#splash-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #000;
+    z-index: 100000; /* Highest priority */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 0.5s ease-out; /* Smooth fade out */
+}
+
+.netflix-intro {
+    display: flex;
+    gap: 4px; /* Space between letters */
+}
+
+.netflix-intro span {
+    color: #E50914; /* Netflix Red */
+    font-family: 'Bebas Neue', sans-serif; /* Needs your imported font */
+    font-size: 5rem; /* Big mobile size */
+    opacity: 0;
+    transform: scale(3); /* Start zoomed in huge */
+    animation: letterZoom 2.5s forwards;
+}
+
+/* Stagger the animation for each letter like the real intro */
+.netflix-intro span:nth-child(1) { animation-delay: 0.1s; }
+.netflix-intro span:nth-child(2) { animation-delay: 0.2s; }
+.netflix-intro span:nth-child(3) { animation-delay: 0.3s; }
+.netflix-intro span:nth-child(4) { animation-delay: 0.4s; }
+.netflix-intro span:nth-child(5) { animation-delay: 0.5s; }
+.netflix-intro span:nth-child(6) { animation-delay: 0.6s; }
+.netflix-intro span:nth-child(7) { animation-delay: 0.7s; }
+
+@keyframes letterZoom {
+    0% {
+        opacity: 0;
+        transform: scale(3);
+        filter: blur(10px);
+    }
+    40% {
+        opacity: 1;
+        transform: scale(1); /* Land in place */
+        filter: blur(0);
+    }
+    85% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    100% {
+        opacity: 0; /* Fade out at the end */
+        transform: scale(1.5); /* Slight zoom out finish */
+    }
+}
+
+/* Hide splash when we add this class via JS */
+#splash-screen.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+/* =========================================
+   2. HEADER & NAVIGATION (FIXED)
+   ========================================= */
+.nav-bar {
+  position: fixed;
+  width: 100%;
+  height: 68px;
+  top: 0;
+  z-index: 9999; /* Ensure it stays on top of everything */
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.7) 10%, transparent);
+  display: flex;
+  align-items: center;
+  padding: 0 4%; /* Responsive padding */
+  transition: background-color 0.4s ease;
+}
+.nav-bar.scrolled {
+  background-color: #141414; /* Solid black */
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.logo {
+  height: 35px;
+  margin-right: 25px;
+  flex-shrink: 0;
+}
+
+.logo img {
+  height: 100%;
+  vertical-align: middle;
+}
+
+.links {
+  display: flex;
+  flex-grow: 1; /* Allows links to take up space */
+}
+
+.links ul {
+  display: flex;
+  list-style: none;
+  align-items: center;
+  gap: 20px;
+  margin: 0;
+  padding: 0;
+}
+
+.links ul li a {
+  text-decoration: none;
+  color: #e5e5e5;
+  font-size: 14px;
+  font-weight: normal;
+  transition: color 0.4s;
+}
+
+.links ul li a:hover {
+  color: #b3b3b3;
+}
+
+/* --- RIGHT SECTION (Search, Bell, Profile) --- */
+.right {
+  display: flex;
+  align-items: center;
+  gap: 20px; /* Space between Search, Kids, Bell, Profile */
+  height: 100%;
+}
+
+/* Search Bar Logic */
+#search-holder {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* Container for the whole search element */
+.search-box {
+  display: flex;
+  align-items: center;
+  background: transparent;
+  border: 1px solid transparent; /* Invisible border initially */
+  padding: 5px;
+  transition: all 0.4s ease; /* Smooth animation */
+}
+
+/* When active (added via JS), show border and background */
+.search-box.active {
+  background-color: black;
+  border: 1px solid white;
+}
+
+.search-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.search-box input {
+  width: 0; /* Hidden initially */
+  background: transparent;
+  border: none;
+  color: white;
+  outline: none;
+  font-size: 14px;
+  transition: width 0.4s ease; /* Smooth slide */
+  opacity: 0;
+}
+
+/* When active, expand width */
+.search-box.active input {
+  width: 200px; /* Target width */
+  opacity: 1;
+  margin-left: 10px; /* Space between icon and text */
+}
+
+/* MOBILE SEARCH EXPANSION */
+.search-box-mobile {
+    display: flex;
+    align-items: center;
+    background: transparent;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+    border-radius: 4px;
+}
+
+.search-btn-mobile {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    align-items: center;
+}
+
+#mobile-search-input {
+    width: 0; /* Hidden by default */
+    opacity: 0;
+    background: transparent;
+    border: none;
+    color: white;
+    outline: none;
+    transition: all 0.3s ease;
+    font-size: 14px;
+}
+
+/* The Active State (JS adds this class) */
+.search-box-mobile.active {
+    background-color: rgba(0,0,0,0.8);
+    border: 1px solid #ccc;
+    padding: 5px;
+}
+
+.search-box-mobile.active #mobile-search-input {
+    width: 150px; /* Expands out */
+    opacity: 1;
+    margin-left: 10px;
+}
+/* Navigation Text (Kids) */
+.kids {
+  font-size: 14px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* Notification Bell */
+.alert {
+  position: relative;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+#another-way {
+  position: relative; /* Container for the dropdown arrow logic */
+}
+
+/* Notification Dropdown Box */
+#under-alert {
+  position: absolute;
+  top: 40px;
+  right: 0; /* Align right edge with bell */
+  width: 300px;
+  height: 400px;
+  background-color: rgba(0, 0, 0, 0.9);
+  border-top: 2px solid white;
+  display: none; /* JS toggles this */
+  flex-direction: column;
+  z-index: 10000;
+}
+
+/* --- PROFILE DROPDOWN SECTION --- */
+
+.profile-drop {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  position: relative; /* Crucial anchor */
+}
+
+.img-cont {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.img-cont img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+#drop-butt {
+  width: 24px;
+  height: 24px;
+  fill: white;
+  transition: transform 0.3s ease;
+}
+
+/* Rotate arrow on hover */
+.profile-drop:hover #drop-butt {
+  transform: rotate(180deg);
+}
+
+/* --- THE DROPDOWN MENU --- */
+#better-approach {
+  position: absolute;
+  top: 32px; /* Moves it below the avatar */
+  right: 0;
+
+  /* THE BRIDGE: Invisible padding to connect avatar to menu */
+  padding-top: 20px;
+
+  /* Hide by default */
+  opacity: 0;
+  pointer-events: none; /* Can't click when hidden */
+  transition: opacity 0.2s ease;
+}
+
+/* Show menu on hover of the PARENT (.profile-drop) */
+.profile-drop:hover #better-approach {
+  opacity: 1;
+  pointer-events: auto; /* Enable clicking */
+}
+
+#under-drop {
+  background-color: rgba(0, 0, 0, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  width: 180px;
+  padding: 15px 0; /* Top/Bottom padding inside box */
+}
+
+/* The Triangle Arrow */
+.arrowtop {
+  position: absolute;
+  top: 10px; /* Position inside the padding bridge */
+  right: 20px; /* Align with the arrow icon */
+  width: 0;
+  height: 0;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-bottom: 10px solid white; /* The color of the arrow */
+}
+
+/* Links inside */
+.linkarea {
+  display: flex;
+  flex-direction: column;
+}
+
+.linkarea a {
+  color: white;
+  text-decoration: none;
+  font-size: 13px;
+  padding: 10px 20px; /* Good click area */
+  display: flex;
+  align-items: center;
+}
+
+.linkarea a:hover {
+  text-decoration: underline;
+}
+
+/* --- Add these NEW styles to your existing CSS --- */
+
+/* 1. SKELETON LOADING ANIMATION */
+.skeleton {
+  background-color: #222;
+  animation: pulse 1.5s 4 ease-in-out;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+    background-color: #333;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* Remove skeleton when loaded (JS will do this) */
+.loaded {
+  animation: none;
+  background-color: transparent;
+}
+
+/* 2. VIDEO VIGNETTE (Gradient Overlay) */
+.vid-cont::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  /* Darkens bottom and top, keeps center clear */
+  background: linear-gradient(
+    to top,
+    #141414 5%,
+    transparent 40%,
+    transparent 70%,
+    rgba(0, 0, 0, 0.5) 100%
+  );
+  pointer-events: none;
+}
+.vid-cont #placeholderImage {
+  width: 100%;
+  height: 1200px;
+}
+
+
+/* MOBILE VIDEO CONTROLS */
+.mobile-controls {
+    position: absolute;
+    bottom: 35%; /* Positions it above the text area */
+    right: 20px;
+    display: flex;
+    flex-direction: column; /* Stack them vertically */
+    gap: 15px;
+   z-index: 1000 !important;
+}
+
+.control-btn {
+    background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent black */
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    backdrop-filter: blur(4px);
+    transition: transform 0.2s ease;
+    padding: 0;
+}
+
+.control-btn:active {
+    transform: scale(0.9);
+    background-color: rgba(255, 255, 255, 0.2);
+}
+/* 3. MOBILE HAMBURGER & MENU */
+.hamburger {
+  display: none; /* Hidden on Desktop */
+  cursor: pointer;
+  margin-right: 15px;
+}
+
+.mobile-menu {
+  position: fixed;
+  top: 0;
+  left: -250px; /* Hidden off-screen left */
+  width: 250px;
+  height: 100vh;
+  background-color: #000;
+  z-index: 10000;
+  transition: left 0.3s ease;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.mobile-menu.open {
+  left: 0; /* Slide in */
+}
+
+.mobile-links a {
+  display: block;
+  color: #808080;
+  font-size: 16px;
+  margin-bottom: 20px;
+  font-weight: bold;
+}
+
+.mobile-links a.active {
+  color: white;
+  border-left: 3px solid #e50914;
+  padding-left: 10px;
+}
+
+.close-menu {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  font-size: 30px;
+  cursor: pointer;
+  color: white;
+}
+
+/* =========================================
+   3. HERO SECTION (VIDEO)
+   ========================================= */
+
+#myVideo {
+  width: 100%;
+}
+.vid-cont {
+  position: relative; /* Changed from absolute to relative flow */
+  height: 100vh; /* Full viewport height */
+  width: 100%;
+  overflow: hidden;
+}
+
+.vid-cont video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Ensures video fills screen without stretching */
+}
+
+/* The Shadow Overlay on Video (The "Vignette") */
+.vid-cont::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to top,
+    #141414 1%,
+    transparent 50%
+  ); /* Smooth fade at bottom */
+  pointer-events: none;
+}
+
+.ontopVideo {
+  position: absolute;
+  top: 35%;
+  left: 4%;
+  width: 45%;
+  height: 50%;
+  z-index: 10;
+  /* border: 3px solid; */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+
+/* Hero Title Image */
+#img-side {
+  width: 100%;
+  max-width: 450px;
+  margin-bottom: 20px;
+}
+
+/* 1. Center the Text Container */
+.text-div {
+    width: 100%;
+    display: flex;             /* Enables Flexbox */
+    justify-content: center;   /* Centers items Horizontally (Left/Right) */
+    align-items: center;       /* Centers items Vertically (Top/Bottom) */
+    
+    /* Your existing font styles */
+    font-family: 'Inter', sans-serif;
+    font-size: 1.2rem;
+    color: white;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+/* 2. Space out the Dots */
+.tags-dot {
+    margin: 0 15px;  /* 15px Space on Left and Right of each dot */
+    color: white;  /* Optional: Netflix Red makes them pop (or use #b3b3b3 for grey) */
+    font-size: 1.5rem; /* Make the dot slightly bigger */
+    line-height: 0;    /* Removes extra height so it aligns perfectly */
+}
+
+
+/* =========================================
+   4. HERO BUTTONS (Netflix Style)
+   ========================================= */
+.buttonHolder {
+  display: flex;
+  gap: 1rem;
+}
+
+/* Base Button Style */
+.side,
+.side1 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.8rem 1.8rem; /* Bigger padding */
+  border-radius: 4px; /* Slight curve */
+  border: none;
+  font-size: 1.2rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* "Play" Button - White */
+.side {
+  background-color: white;
+  color: black;
+}
+
+.side:hover {
+  background-color: rgba(255, 255, 255, 0.75);
+}
+
+/* "More Info" Button - Translucent Gray */
+.side1 {
+  background-color: rgba(109, 109, 110, 0.7);
+  color: white;
+}
+
+.side1:hover {
+  background-color: rgba(109, 109, 110, 0.4);
+}
+
+/* Mute and Age Rating */
+.buttonOut {
+  position: absolute;
+  right: 5%;
+  bottom: 33%;
+  z-index: 10;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.1);
+}
+#muteButton {
+  background-color: transparent;
+  border: none;
+  box-shadow: none;
+  cursor: pointer;
+}
+.agePortion {
+  position: absolute;
+  right: 0;
+  bottom: 35%;
+  background-color: rgba(51, 51, 51, 0.6);
+  border-left: 3px solid #dcdcdc;
+  padding: 5px 10px;
+  font-size: 14px;
+}
+
+/* =========================================
+   5. MOVIE ROWS (Consolidated Code)
+   ========================================= */
+.moviePart {
+  position: relative;
+  z-index: 20;
+  margin-top: -150px; /* Pull rows up over the video fade */
+  padding-bottom: 50px;
+}
+
+.text-area {
+  margin-left: 4%;
+  margin-bottom: 10px;
+  margin-top: 30px;
+  font-size: 1.4rem;
+  font-weight: 500;
+  color: #e5e5e5;
+}
+
+/* Universal Row Container Style */
+/* Grouping all IDs to clean up code */
+#firstRowCont,
+#firstRowCont2,
+#firstRowCont4,
+#firstRowContg,
+#firstRowContr,
+#firstRowContp,
+#firstRowConti,
+#firstRowContl,
+#firstRowContd {
+  display: flex;
+  align-items: center;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 20px 4%; /* Side padding matches header */
+  scroll-behavior: smooth;
+  gap: 8px; /* Tiny gap between movies */
+}
+
+/* Hide Scrollbars */
+::-webkit-scrollbar {
+  display: none;
+}
+#firstRowCont3 {
+  height: 200px;
+
+  background-color: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.8),
+    rgba(0, 0, 0, 1)
+  );
+
+  width: 100%;
+
+  z-index: 2;
+
+  display: flex;
+
+  flex-direction: row;
+
+  justify-content: space-between;
+
+  overflow-x: scroll;
+
+  margin-left: 35px;
+
+  border-radius: 5px;
+
+  /* border: 3px solid white; */
+
+  padding-top: 10px;
+}
+
+#firstRowCont3::-webkit-scrollbar {
+  width: 0;
+}
+/* Movie Card Style */
+.firstRow {
+  flex: 0 0 auto; /* Don't shrink */
+  height: 140px; /* Standard Netflix Row Height */
+  width: 240px; /* Aspect ratio roughly 16:9 */
+  border-radius: 4px;
+  transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1), z-index 0.3s;
+  cursor: pointer;
+  position: relative;
+}
+
+.firstRow img,
+.bestRow img,
+#GamesArea img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 4px;
+}
+#GamesArea {
+  position: relative;
+
+  bottom: 10px;
+
+  height: 170px;
+
+  width: 170px;
+
+  background-color: transparent;
+
+  z-index: 20;
+
+  flex-shrink: 0;
+
+  margin-left: 5px;
+
+  border-radius: 10%;
+
+  overflow: hidden;
+}
+
+#GamesArea img {
+  height: 100%;
+
+  width: 100%;
+
+  cursor: pointer;
+}
+.bestRow {
+  display: flex;
+
+  flex-direction: row;
+
+  position: relative;
+
+  bottom: 10px;
+
+  height: 170px;
+
+  min-width: 250px;
+
+  background-color: transparent;
+
+  z-index: 20;
+
+  flex-shrink: 0;
+
+  margin-left: 5px;
+
+  border-radius: 5px;
+}
+/* The Hover Effect */
+.firstRow:hover,
+#GamesArea:hover {
+  transform: scale(1.15); /* Big pop */
+  border-radius: 10%;
+  z-index: 100;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.9);
+  transition-delay: 0.3s;
+  z-index: 100000;
+  /* Slight delay before pop so scrolling doesn't trigger it */
+}
+
+/* Special Styling for "Top 10" Rows to handle the SVG numbers */
+.svg-holder {
+    flex: 0 0 50%;            /* Don't grow, don't shrink, stay at 50% width */
+    max-width: 90px;          /* Limit the size on tablets */
+    min-width: 60px;          /* CRITICAL: Never get smaller than 60px on tiny phones */
+    height: 100%;             /* Match the height of the image */
+    display: flex;            /* Center the SVG inside */
+    align-items: flex-end;    /* Netflix aligns numbers to the bottom */
+    justify-content: flex-end;/* Align right, closer to the image */
+    z-index: 2;               /* Sit slightly on top if they overlap */
+}
+.svg-icon-rank-1 path {
+  stroke: #595959;
+  fill: black;
+} /* Style the SVG */
+
+/* REQUIRED: Holds the row and buttons together */
+.row-wrapper {
+  position: relative; /* Anchors the buttons to this specific row */
+  width: 100%;
+}
+
+/* Show buttons when you hover over the WHOLE row, not just the button */
+.row-wrapper:hover .scrollButton,
+.row-wrapper:hover .scrollButton1 {
+  opacity: 1; /* Make them visible */
+}
+
+/* =========================================
+   6. SCROLL BUTTONS (Chevrons)
+   ========================================= */
+/* The container for the button */
+.scrollButton,
+.scrollButton1 {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50px; /* Wider clickable area */
+  background-color: rgba(0, 0, 0, 0.5); /* Dark background */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000; /* CRITICAL: Must be higher than movie cards */
+  cursor: pointer;
+  opacity: 0; /* Hidden by default */
+  transition: opacity 0.3s ease, background-color 0.3s;
+}
+
+/* Position Left Button */
+.scrollButton {
+  left: 0;
+}
+
+/* Position Right Button */
+.scrollButton1 {
+  right: 0;
+}
+
+/* Hover effect for the button itself */
+.scrollButton:hover,
+.scrollButton1:hover {
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+/* The Icon inside the button */
+.nav-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-btn svg {
+  fill: white;
+  width: 30px;
+  height: 30px;
+}
+
+/* =========================================
+   7. FOOTER (Flow Layout)
+   ========================================= */
+.footer-section {
+  position: relative; /* FIXED: No more top: 3300px */
+  width: 100%;
+  padding: 70px 0;
+  margin-top: 50px;
+  max-width: 980px;
+  margin: 0 auto; /* Center the footer content */
+  color: grey;
+}
+
+.faceArea {
+  margin-bottom: 20px;
+  display: flex;
+  gap: 20px;
+}
+
+.faceArea svg {
+  fill: white;
+  height: 24px;
+  width: 24px;
+}
+
+.footerOther {
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 13px;
+}
+
+.footerOther div {
+  flex: 1 0 25%; /* 4 Columns */
+  margin-bottom: 20px;
+}
+
+.footerOther ul {
+  list-style: none;
+}
+
+.footerOther li {
+  margin-bottom: 10px;
+}
+
+.footerOther a {
+  color: grey;
+  text-decoration: none;
+}
+
+.footerOther a:hover {
+  text-decoration: underline;
+}
+
+.Serve {
+  border: 1px solid grey;
+  padding: 5px;
+  width: fit-content;
+  margin-top: 20px;
+  font-size: 13px;
+}
+/* Modal Overlay */
+.modal-overlay {
+  display: none; /* Hidden by default */
+  position: fixed;
+  z-index: 10000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(5px); /* Nice blur effect */
+  overflow-y: auto;
+}
+
+/* Modal Box */
+.modal-content {
+  background-color: #181818;
+  margin: 5% auto;
+  width: 90%;
+  max-width: 800px;
+  border-radius: 10px;
+  position: relative;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  animation: scaleUp 0.3s ease;
+}
+
+@keyframes scaleUp {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Close Button */
+.close-modal {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  color: white;
+  font-size: 40px;
+  font-weight: bold;
+  cursor: pointer;
+  z-index: 20;
+}
+
+/* Modal Hero Image */
+.modal-hero {
+  position: relative;
+  height: 400px;
+  width: 100%;
+}
+
+.modal-hero img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.modal-shadow {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 100px;
+  background: linear-gradient(to top, #181818, transparent);
+}
+
+/* Modal Text Info */
+.modal-info {
+  padding: 30px 50px;
+  color: white;
+}
+
+.modal-meta {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  margin: 15px 0;
+  font-weight: bold;
+}
+
+.match {
+  color: #46d369;
+} /* Netflix Green */
+.age,
+.hd {
+  border: 1px solid gray;
+  padding: 0 5px;
+  font-size: 12px;
+}
+
+/* Container to hold buttons side-by-side */
+.modal-buttons {
+  display: flex;
+  flex-direction: row;
+  gap: 15px; /* Space between buttons */
+  margin-top: 20px;
+  align-items: center;
+}
+
+/* SHARED STYLES (Applies to both) */
+.modal-play,
+.modal-add {
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px; /* Space between icon and text */
+  padding: 12px 35px; /* Bigger padding for Desktop */
+  font-size: 1.2rem; /* Bigger text */
+  font-weight: bold;
+  transition: all 0.2s ease;
+  height: 50px;
+  width: 130px;
+}
+
+/* Specific Style: PLAY BUTTON (White) */
+.modal-play {
+  background-color: white;
+  color: black;
+}
+.modal-play:hover {
+  background-color: rgba(255, 255, 255, 0.75);
+}
+
+/* Specific Style: MY LIST BUTTON (Translucent Gray) */
+.modal-add {
+  background-color: rgba(109, 109, 110, 0.7);
+  color: white;
+}
+.modal-add:hover {
+  background-color: rgba(109, 109, 110, 0.4);
+  transform: scale(1.05); /* Slight pop effect */
+}
+
+
+
+/* =========================================
+   PROFILE GATE (NETFLIX CLONE)
+   ========================================= */
+
+/* --- 1. GLOBAL / DESKTOP STYLES --- */
+.profile-gate {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background-color: #141414; /* Netflix Dark Background */
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  opacity: 1;
+  transition: opacity 0.4s ease-out; /* Smooth fade out when clicked */
+}
+.avatar-option {
+    width: 50px;
+    height: 50px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: transform 0.2s;
+    border: 2px solid transparent;
+}
+.avatar-option:hover {
+    transform: scale(1.1);
+}
+/* "Who's Watching?" Title */
+.profile-gate h2 {
+  font-size: 3.5rem;
+  font-weight: 400;
+  margin-bottom: 2rem;
+  color: #fff;
+  text-align: center;
+}
+
+/* The Grid Container */
+.profile-container {
+  display: flex;
+  justify-content: center;
+  gap: 2vw; /* Responsive gap */
+  max-width: 80%;
+  flex-wrap: wrap;
+}
+
+/* Individual Profile Box */
+.profile-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  width: 10vw; /* Scales with screen */
+  min-width: 84px;
+  max-width: 200px;
+}
+
+.profile-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* The Face Icon */
+.profile-icon {
+  width: 100%;
+  aspect-ratio: 1/1; /* Keeps it perfectly square */
+  border-radius: 4px;
+  margin-bottom: 10px;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-size: cover;
+  border: 2px solid transparent; /* Invisible border for hover state */
+  transition: border-color 0.2s;
+}
+
+/* The Profile Name */
+.profile-box span {
+  font-size: 1.3vw;
+  color: #808080; /* Netflix Grey */
+  margin-top: 0.6em;
+  transition: color 0.2s;
+}
+
+/* --- DESKTOP HOVER EFFECTS --- */
+.profile-icon:hover {
+  border-color: white; /* White border on hover */
+  /* background-color: #e5e5e5; Slight lighten if transparent */
+}
+
+.profile-box:hover span {
+  color: white; /* Text turns white */
+  font-weight: bold;
+}
+
+/* MANAGE PROFILES BUTTON (Desktop Style) */
+.manage-btn {
+  margin-top: 3rem;
+  background: transparent;
+  border: 1px solid #808080;
+  color: #808080;
+  font-size: 1.2vw;
+  padding: 0.5em 1.5em;
+  letter-spacing: 2px;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: all 0.2s;
+}
+
+.manage-btn:hover {
+  color: white;
+  border-color: white;
+}
+
+/* Hide Mobile elements on Desktop */
+.edit-btn,
+.mobile-header-logo {
+  display: none;
+}
+
+/* =========================================
+   FEATURE 2: MOVIE MODAL
+   ========================================= */
+.modal-overlay {
+  display: none; /* Hidden by default */
+  position: fixed;
+  z-index: 99999;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  overflow-y: auto; /* Allow scrolling if modal is tall */
+  backdrop-filter: blur(5px);
+}
+
+.modal-content {
+  background-color: #181818;
+  margin: 30px auto;
+  width: 95%;
+  max-width: 850px;
+  border-radius: 10px;
+  position: relative;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  animation: popIn 0.3s ease;
+}
+
+@keyframes popIn {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.close-modal {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  color: white;
+  background-color: #181818;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 36px;
+  font-size: 24px;
+  cursor: pointer;
+  z-index: 20;
+}
+
+.modal-hero {
+  position: relative;
+  height: 480px;
+  width: 100%;
+}
+
+.modal-hero img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.modal-shadow {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 150px;
+  background: linear-gradient(to top, #181818, transparent);
+}
+
+.modal-btn-container {
+  position: absolute;
+  bottom: 50px;
+  left: 50px;
+}
+
+/* --- MODAL INFO LAYOUT --- */
+.modal-info {
+  display: flex; /* Creates the Left/Right columns */
+  padding: 20px 50px 50px 50px; /* Spacing from edges */
+  gap: 40px; /* Space between the text and the "Cast" info */
+  color: white;
+  background-color: #181818; /* Ensure bg matches */
+}
+
+/* Left Column (Title, Buttons, Description) */
+.modal-left {
+  width: 70%; /* Takes up most space */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Right Column (Cast, Genres, Labels) */
+.modal-right {
+  width: 30%;
+  font-size: 14px;
+  line-height: 1.6;
+  margin-top: 10px;
+}
+
+/* Meta Data Row (Match%, Year, Age) */
+.modal-meta {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  margin-bottom: 15px;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.match {
+  color: #46d369; /* Netflix Green */
+}
+.year {
+  color: #a3a3a3;
+}
+.age-box {
+  border: 1px solid gray;
+  padding: 0 6px;
+  font-size: 12px;
+  border-radius: 2px;
+}
+.hd {
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  padding: 0 5px;
+  font-size: 10px;
+  border-radius: 3px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Title & Description */
+#modal-title {
+  margin-bottom: 10px;
+  font-size: 2rem;
+  font-weight: 800;
+}
+
+#modal-desc {
+  margin-top: 15px;
+  font-size: 16px;
+  line-height: 1.5;
+  color: white;
+}
+
+/* Right Side Text Styles */
+.modal-right p {
+  margin-bottom: 15px;
+  color: white;
+}
+.gray-text {
+  color: #777;
+}
+
+/* TOAST NOTIFICATION */
+#toast-box {
+  visibility: hidden;
+  min-width: 250px;
+  background-color: #333;
+  color: #fff;
+  text-align: center;
+  border-radius: 4px;
+  padding: 16px;
+  position: fixed;
+  z-index: 100000;
+  left: 50%;
+  bottom: 30px;
+  transform: translateX(-50%); /* Center it */
+  font-size: 15px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  transition: opacity 0.5s, bottom 0.5s;
+}
+
+#toast-box.show {
+  visibility: visible;
+  opacity: 1;
+  bottom: 50px; /* Moves up slightly */
+}
+
+/* --- FULL SCREEN VIDEO PLAYER --- */
+.video-overlay {
+  display: none; /* Hidden by default */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: black;
+  z-index: 20000; /* Must be on top of everything, including modal */
+  justify-content: center;
+  align-items: center;
+}
+
+.video-overlay.active {
+  display: flex; /* Show when active */
+}
+
+/* Update your existing .video-overlay video styles */
+.video-overlay video,
+.video-overlay iframe {
+  width: 100%;
+  height: 100%;
+  max-height: 100vh;
+  border: none;
+  display: none; /* Hide both by default, JS will show the right one */
+}
+/* Update this in styles.css */
+.close-video {
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    z-index: 999999; /* Forces it above everything else */
+    cursor: pointer;
+    background: rgba(0, 0, 0, 0.7); /* Make sure it has a background so you can see it */
+    color: white;
+    border: none;
+    font-size: 40px;
+    line-height: 40px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.close-video:hover {
+    opacity: 1;
+    background: rgba(200, 0, 0, 0.8); /* Red on hover */
+}
+
+/* =========================================
+   MOBILE RESPONSIVENESS (iOS Style)
+   ========================================= */
+@media screen and (max-width: 768px) {
+  /* 1. Header Container */
+  .nav-bar {
+    height: auto;
+    min-height: 60px;
+    padding: 10px 20px;
+    background: transparent; /* Transparent top like screenshot */
+    justify-content: space-between; /* Space out Logo and Right Icons */
+  }
+
+  /* 2. Right Side Icons (Cast, Search, Profile) */
+  .mobile-right {
+    display: flex !important;
+    align-items: center;
+    gap: 20px;
+  }
+
+  /* Tiny Profile Icon (Blue Square Face) */
+  .nav-profile-mobile {
+    width: 25px;
+    height: 25px;
+    border-radius: 10%;
+    position: relative;
+  }
+ /* Mobile Profile Image Styling */
+.nav-profile-mobile img {
+    width: 32px;
+    height: 32px;
+    border-radius: 4px; /* Slight rounded corners like Netflix */
+    object-fit: cover;
+    display: block; /* Removes weird spacing */
+}
+
+  /* 3. The "TV Shows | Movies | Categories" Row */
+  .mobile-subnav {
+    position: absolute;
+    top: 60px; /* Below the logo row */
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-evenly; /* Spread evenly */
+    align-items: center;
+    padding: 10px 0;
+    z-index: 9000;
+    /* Text Styles */
+    color: white;
+    font-size: 15px;
+    font-weight: 500;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8); /* readable over video */
+  }
+
+  .mobile-subnav span {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+  }
+
+  /* 4. Adjust Hero to sit behind the transparent header */
+  .vid-cont {
+    margin-top: 0;
+    height: 70vh;
+  }
+.imgbesidesvg {
+    flex: 1;                  /* Take up the remaining space */
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.imgbesidesvg img {
+    width: 100%;              /* Fill the holder */
+    height: 100%;             /* Fill the height */
+    object-fit: cover;        /* Don't stretch the face/poster */
+    border-radius: 4px;       /* Optional: Nice rounded corners */
+}
+  .ontopVideo {
+    bottom: 100px;
+    top: auto;
+    width: 100%;
+    left: 0;
+    padding-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* Center the Logo */
+  #imgTextCont {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* border: 1px red solid; */
+  }
+
+  .img-div img {
+    width: 100%;
+    max-width: 350px;
+  }
+
+  /* Hide Desktop Buttons */
+  .side,
+  .side1,
+  .buttonOut,
+  .agePortion {
+    display: none !important;
+  }
+  #add-to-list-hero {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 70px;
+    width: 70px;
+    box-shadow: none;
+    border: none;
+    /* border: 3px red solid; */
+    background-color: transparent;
+
+    color: white;
+  }
+ .play-btn-mobile {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Keeps icon & text packed together */
+  gap: 8px; /* The precise space between the triangle and "Play" */
+  
+  background-color: white;
+  color: black;
+  
+  border: none;
+  border-radius: 4px; /* Netflix buttons have subtle corners, not round */
+  
+  height: 42px; /* Good touch target size */
+  min-width: 110px; /* Ensures it never looks too skinny */
+  padding: 0 15px; 
+  
+  font-size: 1.1rem;
+  font-weight: bold; /* Crucial for the Netflix look */
+}
+
+/* Ensure the SVG icon is black and sized right */
+.play-btn-mobile svg {
+    width: 24px;
+    height: 24px;
+    fill: black; /* Forces the icon to match the text */
+}
+  .info-btn {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 70px;
+    width: 70px;
+    box-shadow: none;
+    border: none;
+    /* border: 3px red solid; */
+    background-color: transparent;
+
+    color: white;
+  }
+  .buttonHolder {
+    display: flex;
+    width: 100%;
+    padding: 10px 30px;
+    justify-content: space-between;
+    /* border: 3px solid; */
+    align-items: center;
+  }
+  .scrollButton{
+    display: none;
+  }
+  .scrollButton1{
+    display: none;
+  }
+  .nav-btn {
+    display: none;
+  }
+  /* =========================================
+   BOTTOM NAVIGATION BAR (Mobile)
+   ========================================= */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 60px;
+    background-color: #121212; /* Slightly lighter than pure black */
+    display: flex;
+    justify-content: space-around; /* Even spacing */
+    align-items: center;
+    border-top: 1px solid #333; /* Subtle divider */
+    z-index: 10001; /* Highest layer */
+    padding-bottom: 5px; /* Adjust for iPhone home bar */
+  }
+
+  .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #8c8c8c; /* Default Gray Color */
+    font-size: 9px;
+    margin-top: 5px;
+    cursor: pointer;
+    width: 20%; /* Clickable area */
+    position: relative;
+  }
+
+  .nav-item svg {
+    margin-bottom: 4px;
+    fill: currentColor; /* Matches text color */
+  }
+
+  .nav-item span {
+    font-weight: 500;
+  }
+
+  /* Active State (White) */
+  .nav-item.active {
+    color: white;
+  }
+  .nav-item.active svg {
+    stroke-width: 2.5px; /* Make active icon bolder */
+  }
+
+  /* Notification Badge (Red Circle) */
+  .icon-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+  }
+
+  .badge {
+    position: absolute;
+    top: -2px;
+    right: -4px;
+    background-color: #e50914; /* Netflix Red */
+    color: white;
+    font-size: 9px;
+    font-weight: bold;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #121212;
+  }
+
+  .footer-section {
+    padding: 50px;
+  }
+}
+/* Hide on Desktop (Ensure your toggle class exists) */
+@media screen and (min-width: 769px) {
+  .bottom-nav {
+    display: none !important;
+  }
+}
+/* =========================================
+   9. TABLET RESPONSIVENESS (768px - 1024px)
+   ========================================= */
+@media screen and (min-width: 769px) and (max-width: 1024px) {
+  /* 1. Navigation: Keep Hamburger for cleaner look */
+  .links {
+    display: none;
+  } /* Hide text links */
+  .hamburger {
+    display: block;
+  } /* Show Hamburger */
+  .logo {
+    margin-right: auto;
+  }
+
+  /* 2. Hero Section: Balanced Size */
+  .vid-cont {
+    height: 60vh;
+    width: 100%;
+  } /* Taller than mobile, shorter than desktop */
+  #myVideo {
+    width: 100%;
+  }
+  .ontopVideo {
+    width: 70%; /* Use more width than desktop */
+    top: 25%;
+  }
+
+  #imgTextCont {
+    width: 100%;
+  }
+
+  .img-div img {
+    width: 300px;
+  } /* Bigger title for tablet */
+
+  /* Show text description but limit it */
+
+  /* 3. Movie Rows: Touch Friendly */
+  #firstRowCont, #firstRowCont2, #firstRowCont3 /* add others */ {
+    padding-left: 30px; /* More breathing room */
+    scrollbar-width: none; /* Firefox hide scrollbar */
+  }
+
+  .firstRow,
+  .bestRow,
+  #GamesArea {
+    width: 160px; /* Bigger cards than phone */
+    height: 220px;
+  }
+
+  /* Disable hover pop on tablet (touch screens get stuck on hover) */
+  .firstRow:hover {
+    transform: none;
+    z-index: 1;
+  }
+
+  /* Hide scroll buttons (Tablets use swipe) */
+  .scrollButton,
+  .scrollButton1 {
+    display: none !important;
+  }
+
+  /* 4. Footer: 2 Column Grid */
+  .footerOther {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* 2 Columns */
+    gap: 30px;
+  }
+  .footerOther div {
+    margin-bottom: 0;
+  }
+
+  /* 5. Profile Gate: Bigger for Touch */
+  .profile-item img {
+    width: 120px;
+    height: 120px;
+  }
+  .gate-container h1 {
+    font-size: 2.5rem;
+  }
+}
+@media screen and (max-width: 768px) {
+  .profile-gate {
+    background-color: #000; /* True Black on mobile */
+    justify-content: center;
+  }
+
+  /* Mobile Header (Logo + Edit Pencil) */
+  .profile-header {
+    position: absolute;
+    top: 15px;
+    left: 0;
+    width: 100%;
+    padding: 0 20px;
+    display: flex;
+    justify-content: center; /* Center the logo */
+    align-items: center;
+  }
+
+  /* Show Mobile Edit Pencil */
+  .edit-btn {
+    display: block;
+    position: absolute;
+    right: 20px;
+    top: 5px;
+    cursor: pointer;
+  }
+
+  .edit-btn svg {
+    width: 20px;
+    height: 20px;
+    fill: white;
+  }
+
+  .edit-logo {
+    height: 20px; /* Smaller Logo */
+    opacity: 0.6; /* Slight fade like app */
+  }
+
+  /* Adjust Title */
+  .profile-gate h2 {
+    font-size: 1.2rem;
+    font-weight: 500;
+    margin-bottom: 25px;
+    color: #e5e5e5;
+  }
+
+  /* Mobile Grid (2x2 Tight Layout) */
+  .profile-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* Force 2 columns */
+    gap: 20px; /* Fixed px gap */
+    width: auto;
+    max-width: 250px; /* constrain width so icons aren't huge */
+  }
+
+  .profile-box {
+    width: 100px; /* Fixed size for mobile touch targets */
+    height: auto;
+  }
+
+  .profile-icon {
+    width: 100px;
+    height: 100px;
+    border-radius: 4px;
+  }
+
+  .profile-box span {
+    font-size: 0.9rem;
+    font-weight: 400;
+    color: #fff; /* Always white on mobile */
+    margin-top: 5px;
+  }
+
+  /* Hide the "Manage Profiles" button (Mobile uses the Pencil icon) */
+  .manage-btn {
+    display: none;
+  }
+}
+/* =========================================
+   MOBILE MODAL REDESIGN (Bottom Sheet Style)
+   ========================================= */
+@media screen and (max-width: 768px) {
+
+    /* 1. Position: Bottom Sheet */
+    .modal-content {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        max-width: 100%;
+        height: 85vh; /* Covers 85% of screen */
+        margin: 0;
+        border-radius: 12px 12px 0 0; /* Round top corners only */
+        overflow-y: auto; /* Scrollable content */
+        animation: slideUp 0.3s ease-out;
+    }
+
+    @keyframes slideUp {
+        from { transform: translateY(100%); }
+        to { transform: translateY(0); }
+    }
+
+    /* 2. Hero Image */
+    .modal-hero {
+        height: 250px; /* Shorter on mobile */
+    }
+    
+    .close-modal {
+        top: 10px;
+        right: 10px;
+        background: rgba(0,0,0,0.5); /* Semi-transparent circle */
+        width: 30px; height: 30px;
+        font-size: 20px;
+        line-height: 30px;
+    }
+
+    /* 3. Layout: Stack Columns Vertical */
+    .modal-info {
+        flex-direction: column; /* Stack Left & Right columns */
+        padding: 15px; /* Less padding */
+        gap: 10px;
+    }
+
+    .modal-left, .modal-right {
+        width: 100%; /* Full width */
+    }
+
+    /* 4. Buttons: Full Width & Stacked */
+    .modal-buttons {
+        flex-direction: column; /* Stack buttons vertically */
+        gap: 10px;
+        width: 100%;
+        margin-bottom: 20px;
+    }
+
+    /* Play Button (Primary) */
+    .modal-play {
+        width: 100%;
+        background-color: white;
+        color: black;
+        height: 45px;
+        font-size: 1rem;
+        margin: 0;
+    }
+
+    /* My List Button (Secondary - Looks like 'Download') */
+    .modal-add {
+        width: 100%;
+        background-color: #262626; /* Dark Gray */
+        color: white;
+        height: 45px;
+        font-size: 1rem;
+        margin: 0;
+    }
+
+    /* 5. Typography Tweaks */
+    #modal-title {
+        font-size: 1.5rem;
+        margin-top: 0;
+    }
+
+    .modal-meta {
+        font-size: 0.9rem;
+        color: #bcbcbc;
+    }
+    
+    #modal-desc {
+        font-size: 0.9rem;
+        color: white;
+        line-height: 1.4;
+    }
+    
+    .modal-right p {
+        font-size: 0.8rem;
+        color: #777;
+        margin-bottom: 5px;
+    }
+    
+    /* Hide the shadow overlay on mobile to keep image clear */
+    .modal-shadow { display: none; }
+}
+
+@media only screen and (max-width: 600px) {
+    /* Make the entire row holder slightly smaller on phone so more fit on screen */
+    .bestRow {
+        min-width: 140px;     /* Guarantees the row has width */
+        height: 160px;        /* Fix the height specifically for mobile */
+    }
+
+    /* Adjust the number size for small screens */
+    .svg-holder {
+        min-width: 40px;      /* Allow it to be slightly smaller on tiny phones */
+    }
+}
+/* ======================================================
+   MOBILE TOP 10 FIX (Paste at the very bottom of styles.css)
+   ====================================================== */
+@media only screen and (max-width: 768px) {
+
+    /* 1. Force the Container to be rigid and Side-by-Side */
+    .bestRow {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: flex-end !important; /* Aligns number and image bottoms */
+        
+        /* Force specific size for mobile */
+        min-width: 150px !important; 
+        max-width: 150px !important;
+        height: 160px !important;
+        
+        margin-right: 15px !important;
+        position: relative !important;
+        background: transparent !important;
+        border: none !important;
+    }
+
+    /* 2. Force the Number (SVG) to take exactly 40% space */
+    .svg-holder {
+        display: block !important;
+        flex: 0 0 45% !important; /* Lock width to 45% */
+        width: 45% !important;
+        height: 100% !important;
+        
+        /* Ensure the SVG fills this space */
+        position: relative !important;
+    }
+
+    /* Make the SVG itself stretch to fit the holder */
+    .svg-holder svg {
+        width: 100% !important;
+        height: 100% !important;
+        display: block !important;
+    }
+
+    /* 3. Force the Movie Image to take the other 60% */
+    .imgbesidesvg {
+        display: block !important;
+        flex: 1 !important; /* Fill remaining space */
+        height: 100% !important;
+        width: 60% !important;
+        padding: 0 !important;
+    }
+
+    /* Ensure the image covers the area perfectly */
+    .imgbesidesvg img {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+        border-radius: 4px !important;
+    }
+}
+/* ==============================================
+   FIX: Stop Buttons overlapping Text on Mobile
+   ============================================== */
+@media screen and (max-width: 768px) {
+    
+    /* 1. Push the Buttons slightly higher up the video */
+    .ontopVideo {
+        bottom: 130px !important; /* Moves the whole Play/Info block up */
+    }
+
+    /* 2. Push the "New on Netflix" text DOWN away from the video */
+    .moviePart {
+        /* On desktop this is -150px. On mobile, we reduce it significantly */
+        margin-top: -40px !important; 
+        
+        /* Add some padding to ensure the text has breathing room */
+        padding-top: 20px !important;
+        position: relative !important;
+        z-index: 50 !important;
+    }
+    
+    /* Optional: Ensure the text itself doesn't wrap weirdly */
+    .text-area {
+        margin-top: 0 !important;
+        padding-top: 10px !important;
+    }
+}
